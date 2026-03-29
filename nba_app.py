@@ -16,7 +16,7 @@ import calendar as _cal_lib
 # ============================================
 # PAGE CONFIG & SESSION STATE
 # ============================================
-st.set_page_config(page_title="NBA Analytics Hub", layout="wide", page_icon="🏀")
+st.set_page_config(page_title="EV Edge", layout="wide", page_icon="⚡")
 
 if "dark_mode" not in st.session_state:
     st.session_state.dark_mode = True
@@ -24,18 +24,29 @@ if "show_home_team2" not in st.session_state:
     st.session_state.show_home_team2 = False
 if "home_analytics" not in st.session_state:
     st.session_state.home_analytics = False
+if "logged_in" not in st.session_state:
+    st.session_state.logged_in = False
+if "username" not in st.session_state:
+    st.session_state.username = ""
+if "user_tier" not in st.session_state:
+    st.session_state.user_tier = "free"
+if "auth_mode" not in st.session_state:
+    st.session_state.auth_mode = "landing"   # "landing" | "login" | "signup"
 
 _d = st.session_state.dark_mode
-_bg     = "#0e1117" if _d else "#f6f8fa"
-_bg2    = "#161b22" if _d else "#ffffff"
-_bg3    = "#21262d" if _d else "#eaeef2"
-_txt    = "#e6edf3" if _d else "#24292f"
-_txt2   = "#b0bac5" if _d else "#57606a"
-_txt3   = "#d0d7de" if _d else "#32383f"
-_bdr    = "#30363d" if _d else "#d0d7de"
-_head   = "#f0f6fc" if _d else "#1a1a2e"
-_card   = "#1a1f2e" if _d else "#ffffff"
-_card2  = "#252b3b" if _d else "#f0f3f6"
+_bg     = "#080C18" if _d else "#f0f4f8"
+_bg2    = "#0D1220" if _d else "#ffffff"
+_bg3    = "#141929" if _d else "#e8ecf2"
+_txt    = "#e8edf5" if _d else "#1a2030"
+_txt2   = "#9AAABB" if _d else "#5a6878"
+_txt3   = "#c8d4e0" if _d else "#2a3545"
+_bdr    = "#1e2d40" if _d else "#c8d4e0"
+_head   = "#f0f6fc" if _d else "#080C18"
+_card   = "#0D1525" if _d else "#ffffff"
+_card2  = "#121d30" if _d else "#eef2f7"
+_accent = "#00C8FF"
+_accent2= "#0095CC"
+_grey   = "#9AAABB"
 
 st.markdown(f"""
 <style>
@@ -51,7 +62,7 @@ st.markdown(f"""
     [data-testid="stSidebar"] span {{ color: {_txt3} !important; }}
     .app-title {{
         font-size: 2.2rem; font-weight: 800;
-        background: linear-gradient(135deg, #f97316, #ef4444, #8b5cf6);
+        background: linear-gradient(135deg, #00C8FF, #0095CC, #005F99);
         -webkit-background-clip: text; -webkit-text-fill-color: transparent;
         margin-bottom: 0; padding-bottom: 0;
     }}
@@ -62,10 +73,10 @@ st.markdown(f"""
         padding: 16px; margin: 6px 0; text-align: center;
     }}
     .score-card .team-name {{ color: {_head}; font-size: 1rem; font-weight: 600; }}
-    .score-card .score {{ color: #f97316; font-size: 2rem; font-weight: 800; }}
+    .score-card .score {{ color: #00C8FF; font-size: 2rem; font-weight: 800; }}
     .score-card .status {{ color: #7ee787; font-size: 0.8rem; font-weight: 600; }}
     .score-card .status-final {{ color: {_txt2}; }}
-    .score-card .status-live {{ color: #f97316; animation: pulse 1.5s infinite; }}
+    .score-card .status-live {{ color: #00C8FF; animation: pulse 1.5s infinite; }}
     @keyframes pulse {{ 0%,100% {{ opacity: 1; }} 50% {{ opacity: 0.5; }} }}
     [data-testid="stMetric"] {{
         background: {_bg2}; border: 1px solid {_bdr};
@@ -79,7 +90,7 @@ st.markdown(f"""
         color: {_txt2}; background-color: transparent; border-radius: 6px;
         font-weight: 600; font-size: 0.85rem;
     }}
-    .stTabs [aria-selected="true"] {{ background-color: {_bg3}; color: #f97316; }}
+    .stTabs [aria-selected="true"] {{ background-color: {_bg3}; color: #00C8FF; }}
     [data-testid="stDataFrame"] {{ border: 1px solid {_bdr}; border-radius: 8px; }}
     .stSelectbox label, .stTextInput label,
     .stNumberInput label, .stDateInput label,
@@ -89,18 +100,18 @@ st.markdown(f"""
         border: 1px solid {_bdr}; border-radius: 6px;
     }}
     .stButton > button {{
-        background: linear-gradient(135deg, #f97316, #ea580c);
-        color: white; border: none; border-radius: 8px;
-        font-weight: 600; transition: all 0.2s;
+        background: linear-gradient(135deg, #00C8FF, #0095CC);
+        color: #080C18; border: none; border-radius: 8px;
+        font-weight: 700; transition: all 0.2s;
     }}
-    .stButton > button:hover {{ transform: translateY(-1px); box-shadow: 0 4px 12px rgba(249,115,22,0.4); }}
+    .stButton > button:hover {{ transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,200,255,0.4); }}
     [data-testid="stExpander"] {{ background-color: {_bg2}; border: 1px solid {_bdr}; border-radius: 8px; }}
     [data-testid="stExpander"] summary {{ color: {_txt3} !important; font-weight: 600; }}
     hr {{ border-color: {_bdr}; }}
     [data-testid="stForm"] {{ background-color: {_bg2}; border: 1px solid {_bdr}; border-radius: 8px; padding: 16px; }}
     [data-testid="stNotification"] {{ color: {_txt} !important; }}
     .injury-out {{ color: #f85149; font-weight: 600; }}
-    .injury-dtd {{ color: #f97316; font-weight: 600; }}
+    .injury-dtd {{ color: #00C8FF; font-weight: 600; }}
     .injury-probable {{ color: #7ee787; font-weight: 600; }}
     .team-panel {{
         background: {_bg2}; border: 1px solid {_bdr};
@@ -109,14 +120,34 @@ st.markdown(f"""
 </style>
 """, unsafe_allow_html=True)
 
-_hdr_l, _hdr_r = st.columns([11, 1])
+_hdr_l, _hdr_r = st.columns([9, 3])
 with _hdr_l:
-    st.markdown('<p class="app-title">🏀 NBA Analytics Hub</p>', unsafe_allow_html=True)
-    st.markdown('<p class="app-subtitle">Live 2025-26 season • Scores • Stats • Odds • Predictions</p>', unsafe_allow_html=True)
+    st.markdown('<p class="app-title">⚡ EV Edge</p>', unsafe_allow_html=True)
+    st.markdown('<p class="app-subtitle">Live 2025-26 season • Scores • Stats • Odds • Sharp Analytics</p>', unsafe_allow_html=True)
 with _hdr_r:
-    st.markdown("<div style='padding-top:10px;text-align:right'>", unsafe_allow_html=True)
-    st.toggle("🌙", key="dark_mode", help="Dark / Light mode")
-    st.markdown("</div>", unsafe_allow_html=True)
+    _nav_cols = st.columns([2, 2, 1])
+    with _nav_cols[0]:
+        if st.session_state.logged_in:
+            if st.button(f"👤 {st.session_state.username}", key="btn_profile"):
+                pass
+        else:
+            if st.button("Log In", key="btn_login_nav"):
+                st.session_state.auth_mode = "login"
+                st.rerun()
+    with _nav_cols[1]:
+        if not st.session_state.logged_in:
+            if st.button("Sign Up", key="btn_signup_nav"):
+                st.session_state.auth_mode = "signup"
+                st.rerun()
+        else:
+            if st.button("Log Out", key="btn_logout_nav"):
+                st.session_state.logged_in = False
+                st.session_state.username = ""
+                st.session_state.user_tier = "free"
+                st.session_state.auth_mode = "landing"
+                st.rerun()
+    with _nav_cols[2]:
+        st.toggle("🌙", key="dark_mode", help="Dark / Light mode")
 
 # ============================================
 # DATA FILES
@@ -124,6 +155,7 @@ with _hdr_r:
 PREDICTIONS_FILE = "prediction_log.json"
 BANKROLL_FILE    = "bankroll_log.json"
 CLV_FILE         = "clv_log.json"
+USERS_FILE       = "users_ev.json"
 
 def load_json(fp):
     if os.path.exists(fp):
@@ -131,6 +163,29 @@ def load_json(fp):
     return []
 def save_json(fp, data):
     with open(fp, "w") as f: json.dump(data, f, indent=2)
+
+def load_users():
+    if os.path.exists(USERS_FILE):
+        with open(USERS_FILE, "r") as f: return json.load(f)
+    return {}
+
+def save_users(users):
+    with open(USERS_FILE, "w") as f: json.dump(users, f, indent=2)
+
+def auth_login(username, password):
+    users = load_users()
+    u = users.get(username.lower())
+    if u and u["password"] == password:
+        return True, u.get("tier", "free")
+    return False, None
+
+def auth_signup(username, password, tier="free"):
+    users = load_users()
+    if username.lower() in users:
+        return False, "Username already taken."
+    users[username.lower()] = {"password": password, "tier": tier, "created": str(date.today())}
+    save_users(users)
+    return True, "Account created!"
 
 # ============================================
 # API FUNCTIONS
@@ -293,6 +348,223 @@ st.sidebar.markdown("### 🔑 Odds API")
 odds_api_key = st.sidebar.text_input("API Key", type="password", help="Free at the-odds-api.com")
 
 # ============================================
+# LANDING / AUTH GATE
+# ============================================
+if not st.session_state.logged_in:
+    _am = st.session_state.auth_mode
+
+    # ── Shared page CSS ────────────────────────────────────────────────────
+    st.markdown(f"""
+    <style>
+    .lp-hero {{ text-align:center; padding: 60px 20px 30px; }}
+    .lp-logo {{ font-size:4rem; font-weight:900;
+        background: linear-gradient(135deg,#00C8FF,#0095CC,#005F99);
+        -webkit-background-clip:text; -webkit-text-fill-color:transparent; }}
+    .lp-tagline {{ color:{_txt2}; font-size:1.15rem; margin-top:8px; }}
+    .tier-card {{
+        background: linear-gradient(160deg,{_card},{_card2});
+        border:1px solid {_bdr}; border-radius:16px;
+        padding:28px 20px; text-align:center; position:relative;
+        transition: transform .2s;
+    }}
+    .tier-card:hover {{ transform: translateY(-4px); }}
+    .tier-card.popular {{ border-color:#00C8FF; box-shadow:0 0 24px rgba(0,200,255,.25); }}
+    .tier-badge {{
+        position:absolute; top:-12px; left:50%; transform:translateX(-50%);
+        background:#00C8FF; color:#080C18; font-size:.7rem; font-weight:800;
+        padding:3px 12px; border-radius:999px; letter-spacing:.08em;
+    }}
+    .tier-name {{ color:{_head}; font-size:1.3rem; font-weight:800; margin-bottom:6px; }}
+    .tier-price {{ color:#00C8FF; font-size:2.4rem; font-weight:900; line-height:1; }}
+    .tier-period {{ color:{_txt2}; font-size:.85rem; }}
+    .tier-feat {{ color:{_txt3}; font-size:.88rem; text-align:left; margin:14px 0; line-height:1.8; }}
+    .feat-check {{ color:#00C8FF; }}
+    .feat-x {{ color:#555e6e; }}
+    .auth-form {{ max-width:420px; margin:0 auto; padding:32px;
+        background:{_card}; border:1px solid {_bdr}; border-radius:16px; }}
+    .auth-title {{ color:{_head}; font-size:1.6rem; font-weight:800; margin-bottom:4px; }}
+    .auth-sub {{ color:{_txt2}; font-size:.9rem; margin-bottom:20px; }}
+    </style>
+    """, unsafe_allow_html=True)
+
+    if _am == "landing":
+        # ── Hero ───────────────────────────────────────────────────────────
+        st.markdown("""
+        <div class="lp-hero">
+            <div class="lp-logo">⚡ EV Edge</div>
+            <div class="lp-tagline">Sharp NBA analytics. Beat the closing line. Edge the market.</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+        # ── Feature highlights ─────────────────────────────────────────────
+        _f1, _f2, _f3, _f4 = st.columns(4)
+        for _col, _icon, _label in [
+            (_f1, "🔴", "Live Scores & Box Scores"),
+            (_f2, "🧠", "Elo + Four Factors Models"),
+            (_f3, "⚡", "EV Calculator & CLV Tracker"),
+            (_f4, "💵", "Bankroll & P&L Calendar"),
+        ]:
+            with _col:
+                st.markdown(f"""
+                <div style="background:{_card};border:1px solid {_bdr};border-radius:12px;
+                     padding:18px;text-align:center;margin-bottom:8px;">
+                    <div style="font-size:2rem;">{_icon}</div>
+                    <div style="color:{_txt3};font-size:.85rem;margin-top:6px;">{_label}</div>
+                </div>""", unsafe_allow_html=True)
+
+        st.markdown("<br>", unsafe_allow_html=True)
+
+        # ── Pricing cards ──────────────────────────────────────────────────
+        st.markdown(f"<h2 style='text-align:center;color:{_head};'>Choose Your Plan</h2>", unsafe_allow_html=True)
+        _pc1, _pc2, _pc3 = st.columns(3)
+
+        with _pc1:
+            st.markdown(f"""
+            <div class="tier-card">
+                <div class="tier-name">Free</div>
+                <div class="tier-price">$0</div>
+                <div class="tier-period">forever</div>
+                <div class="tier-feat">
+                    <span class="feat-check">✓</span> Live Scores & Standings<br>
+                    <span class="feat-check">✓</span> Team Stats & Compare<br>
+                    <span class="feat-check">✓</span> Injury Reports<br>
+                    <span class="feat-x">✗</span> EV Calculator<br>
+                    <span class="feat-x">✗</span> Models (Elo, FF, CLV)<br>
+                    <span class="feat-x">✗</span> Bankroll Tracker<br>
+                    <span class="feat-x">✗</span> Odds Feed<br>
+                </div>
+            </div>""", unsafe_allow_html=True)
+            st.markdown("<br>", unsafe_allow_html=True)
+            if st.button("Get Started Free", key="cta_free"):
+                st.session_state.auth_mode = "signup"
+                st.rerun()
+
+        with _pc2:
+            st.markdown(f"""
+            <div class="tier-card popular">
+                <div class="tier-badge">MOST POPULAR</div>
+                <div class="tier-name">Pro</div>
+                <div class="tier-price">$19.99</div>
+                <div class="tier-period">per month</div>
+                <div class="tier-feat">
+                    <span class="feat-check">✓</span> Everything in Free<br>
+                    <span class="feat-check">✓</span> EV Calculator<br>
+                    <span class="feat-check">✓</span> Elo & Four Factors Models<br>
+                    <span class="feat-check">✓</span> Market Factors Analysis<br>
+                    <span class="feat-check">✓</span> Bankroll Tracker & Calendar<br>
+                    <span class="feat-check">✓</span> Live Odds Feed<br>
+                    <span class="feat-x">✗</span> CLV Tracker<br>
+                </div>
+            </div>""", unsafe_allow_html=True)
+            st.markdown("<br>", unsafe_allow_html=True)
+            if st.button("Start Pro — $19.99/mo", key="cta_pro"):
+                st.session_state.auth_mode = "signup"
+                st.rerun()
+
+        with _pc3:
+            st.markdown(f"""
+            <div class="tier-card">
+                <div class="tier-name">Elite</div>
+                <div class="tier-price">$49.99</div>
+                <div class="tier-period">per month</div>
+                <div class="tier-feat">
+                    <span class="feat-check">✓</span> Everything in Pro<br>
+                    <span class="feat-check">✓</span> CLV Tracker (full history)<br>
+                    <span class="feat-check">✓</span> Player-Level Model<br>
+                    <span class="feat-check">✓</span> Prediction Log & Analytics<br>
+                    <span class="feat-check">✓</span> Priority Data Refresh<br>
+                    <span class="feat-check">✓</span> Early Access to New Features<br>
+                    <span class="feat-check">✓</span> Discord Community Access<br>
+                </div>
+            </div>""", unsafe_allow_html=True)
+            st.markdown("<br>", unsafe_allow_html=True)
+            if st.button("Go Elite — $49.99/mo", key="cta_elite"):
+                st.session_state.auth_mode = "signup"
+                st.rerun()
+
+        st.markdown("<br>", unsafe_allow_html=True)
+        _lp_c1, _lp_c2, _lp_c3 = st.columns([3, 2, 3])
+        with _lp_c2:
+            if st.button("Already have an account? Log In →", key="cta_login"):
+                st.session_state.auth_mode = "login"
+                st.rerun()
+
+    elif _am == "login":
+        _ac, _bc = st.columns([1, 1])
+        with _ac:
+            st.markdown(f"""
+            <div class="auth-form">
+                <div class="auth-title">⚡ Welcome back</div>
+                <div class="auth-sub">Log in to your EV Edge account</div>
+            </div>""", unsafe_allow_html=True)
+        with _bc:
+            st.markdown("<br>", unsafe_allow_html=True)
+            with st.form("login_form"):
+                _li_user = st.text_input("Username")
+                _li_pass = st.text_input("Password", type="password")
+                _li_sub  = st.form_submit_button("Log In")
+                if _li_sub:
+                    _ok, _tier = auth_login(_li_user, _li_pass)
+                    if _ok:
+                        st.session_state.logged_in = True
+                        st.session_state.username  = _li_user
+                        st.session_state.user_tier = _tier
+                        st.session_state.auth_mode = "app"
+                        st.rerun()
+                    else:
+                        st.error("Invalid username or password.")
+            if st.button("← Back to Home", key="login_back"):
+                st.session_state.auth_mode = "landing"
+                st.rerun()
+            if st.button("Create an account →", key="login_to_signup"):
+                st.session_state.auth_mode = "signup"
+                st.rerun()
+
+    elif _am == "signup":
+        _ac, _bc = st.columns([1, 1])
+        with _ac:
+            st.markdown(f"""
+            <div class="auth-form">
+                <div class="auth-title">⚡ Join EV Edge</div>
+                <div class="auth-sub">Create your free account — upgrade anytime</div>
+            </div>""", unsafe_allow_html=True)
+        with _bc:
+            st.markdown("<br>", unsafe_allow_html=True)
+            with st.form("signup_form"):
+                _su_user = st.text_input("Choose a username")
+                _su_pass = st.text_input("Password", type="password")
+                _su_pass2= st.text_input("Confirm password", type="password")
+                _su_tier = st.selectbox("Plan", ["free", "pro", "elite"],
+                    format_func=lambda x: {"free":"Free","pro":"Pro — $19.99/mo","elite":"Elite — $49.99/mo"}[x])
+                _su_sub  = st.form_submit_button("Create Account")
+                if _su_sub:
+                    if not _su_user.strip():
+                        st.error("Username is required.")
+                    elif _su_pass != _su_pass2:
+                        st.error("Passwords do not match.")
+                    elif len(_su_pass) < 6:
+                        st.error("Password must be at least 6 characters.")
+                    else:
+                        _ok2, _msg = auth_signup(_su_user.strip(), _su_pass, _su_tier)
+                        if _ok2:
+                            st.success(_msg)
+                            st.session_state.logged_in = True
+                            st.session_state.username  = _su_user.strip()
+                            st.session_state.user_tier = _su_tier
+                            st.session_state.auth_mode = "app"
+                            st.rerun()
+                        else:
+                            st.error(_msg)
+            if st.button("← Back to Home", key="signup_back"):
+                st.session_state.auth_mode = "landing"
+                st.rerun()
+            if st.button("Already have an account? Log In →", key="signup_to_login"):
+                st.session_state.auth_mode = "login"
+                st.rerun()
+
+    st.stop()
+
+# ============================================
 # TABS
 # ============================================
 tab_live, tab_comp, tab_trends, tab_players, tab_odds, tab_predict, tab_injuries, tab_record, tab_ev, tab_models, tab_bank, tab_stand = st.tabs([
@@ -348,7 +620,7 @@ with tab_live:
                 _ar=_ag.head(15).iloc[::-1].reset_index(drop=True)
                 _ar["GN"]=range(1,len(_ar)+1); _ar["OPP"]=_ar["PTS"]-_ar["PLUS_MINUS"]
                 _afig=go.Figure()
-                _afig.add_trace(go.Scatter(x=_ar["GN"],y=_ar["PTS"],mode="lines+markers",name="Scored",line=dict(color="#f97316",width=2)))
+                _afig.add_trace(go.Scatter(x=_ar["GN"],y=_ar["PTS"],mode="lines+markers",name="Scored",line=dict(color="#00C8FF",width=2)))
                 _afig.add_trace(go.Scatter(x=_ar["GN"],y=_ar["OPP"],mode="lines+markers",name="Allowed",line=dict(color="#f85149",width=2)))
                 _afig.update_layout(title=f"{live_t1} — Last 15 Games",height=320,**PLOTLY_THEME)
                 st.plotly_chart(_afig, use_container_width=True)
@@ -517,7 +789,7 @@ with tab_trends:
         if len(tg)>0:
             r=tg.head(ng).iloc[::-1].reset_index(drop=True); r["GN"]=range(1,len(r)+1); r["OPP"]=r["PTS"]-r["PLUS_MINUS"]
             fig=go.Figure()
-            fig.add_trace(go.Scatter(x=r["GN"],y=r["PTS"],mode="lines+markers",name="Scored",line=dict(color="#f97316",width=3)))
+            fig.add_trace(go.Scatter(x=r["GN"],y=r["PTS"],mode="lines+markers",name="Scored",line=dict(color="#00C8FF",width=3)))
             fig.add_trace(go.Scatter(x=r["GN"],y=r["OPP"],mode="lines+markers",name="Allowed",line=dict(color="#f85149",width=3)))
             fig.update_layout(title=f"Scoring (Last {ng})",height=400,**PLOTLY_THEME)
             st.plotly_chart(fig, use_container_width=True)
@@ -552,7 +824,7 @@ with tab_players:
                 st.dataframe(pd.DataFrame(pd_list),use_container_width=True,hide_index=True)
                 cg=gl.head(20).iloc[::-1].reset_index(drop=True); cg["GN"]=range(1,len(cg)+1)
                 fp=go.Figure(); fp.add_trace(go.Bar(x=cg["GN"],y=cg["PTS"],marker_color=["#7ee787" if w=="W" else "#f85149" for w in cg["WL"]]))
-                fp.add_hline(y=gl["PTS"].mean(),line_dash="dash",line_color="#f97316",annotation_text=f"Avg: {round(gl['PTS'].mean(),1)}")
+                fp.add_hline(y=gl["PTS"].mean(),line_dash="dash",line_color="#00C8FF",annotation_text=f"Avg: {round(gl['PTS'].mean(),1)}")
                 fp.update_layout(title=f"{sel} - Scoring",height=350,**PLOTLY_THEME)
                 st.plotly_chart(fp, use_container_width=True)
                 st.markdown("#### Recent Games")
@@ -703,7 +975,7 @@ with tab_record:
                     rn+=1; rc+=1 if p["result"]=="correct" else 0; rt.append({"#":rn,"Win%":round(rc/rn*100,1)})
             if rt:
                 rtdf=pd.DataFrame(rt); fig=go.Figure()
-                fig.add_trace(go.Scatter(x=rtdf["#"],y=rtdf["Win%"],mode="lines+markers",line=dict(color="#f97316",width=3),fill="tozeroy",fillcolor="rgba(249,115,22,0.1)"))
+                fig.add_trace(go.Scatter(x=rtdf["#"],y=rtdf["Win%"],mode="lines+markers",line=dict(color="#00C8FF",width=3),fill="tozeroy",fillcolor="rgba(0,200,255,0.1)"))
                 fig.add_hline(y=50,line_dash="dash",line_color="#f85149",annotation_text="50%")
                 fig.update_layout(title="Win Rate Over Time",height=350,**PLOTLY_THEME)
                 st.plotly_chart(fig,use_container_width=True)
@@ -862,7 +1134,7 @@ with tab_models:
             _v2r = [_f2["eFG%"], 100-_f2["TOV%"], _f2["OREB%"], _f2["FTR"]*100]
             _fig_r = go.Figure()
             _fig_r.add_trace(go.Scatterpolar(r=_v1r+[_v1r[0]], theta=_cats+[_cats[0]],
-                fill="toself", name=_ff_t1, line_color="#f97316"))
+                fill="toself", name=_ff_t1, line_color="#00C8FF"))
             _fig_r.add_trace(go.Scatterpolar(r=_v2r+[_v2r[0]], theta=_cats+[_cats[0]],
                 fill="toself", name=_ff_t2, line_color="#8b5cf6"))
             _fig_r.update_layout(polar=dict(
@@ -1137,12 +1409,12 @@ with tab_bank:
                 else:
                     _dstr = f"{st.session_state.cal_y}-{st.session_state.cal_m:02d}-{_dy:02d}"
                     _ds   = _daily_dict.get(_dstr)
-                    _today_ring = "outline:2px solid #f97316;outline-offset:2px;" if _dstr==str(today_dt) else ""
+                    _today_ring = "outline:2px solid #00C8FF;outline-offset:2px;" if _dstr==str(today_dt) else ""
                     if _ds:
                         _dn = _ds["net"]
                         if   _dn > 0: _cbg,_cbdr,_cnc = "rgba(126,231,135,0.18)","#7ee787","#7ee787"
                         elif _dn < 0: _cbg,_cbdr,_cnc = "rgba(248,81,73,0.18)",  "#f85149","#f85149"
-                        else:         _cbg,_cbdr,_cnc = "rgba(249,115,22,0.12)", "#f97316","#f97316"
+                        else:         _cbg,_cbdr,_cnc = "rgba(0,200,255,0.12)", "#00C8FF","#00C8FF"
                         _cal_html += (
                             f"<td style='background:{_cbg};border:1px solid {_cbdr};{_td_base}{_today_ring}'>"
                             f"<div style='font-weight:700;color:{_head};font-size:0.85rem;'>{_dy}</div>"
@@ -1152,7 +1424,7 @@ with tab_bank:
                             f"</td>")
                     else:
                         _ebg = f"rgba(249,115,22,0.06)" if _dstr==str(today_dt) else _bg2
-                        _ebdr = "#f97316" if _dstr==str(today_dt) else _bdr
+                        _ebdr = "#00C8FF" if _dstr==str(today_dt) else _bdr
                         _cal_html += (
                             f"<td style='background:{_ebg};border:1px solid {_ebdr};{_td_base}'>"
                             f"<div style='font-weight:700;color:{_txt2};font-size:0.85rem;'>{_dy}</div>"
