@@ -378,8 +378,8 @@ if not st.session_state.logged_in:
     .tier-price {{ color:#00C8FF; font-size:2.4rem; font-weight:900; line-height:1; }}
     .tier-period {{ color:{_txt2}; font-size:.85rem; }}
     .tier-feat {{ color:{_txt3}; font-size:.88rem; text-align:left; margin:14px 0; line-height:1.8; }}
-    .feat-check {{ color:#3dd68c; }}
-    .feat-x {{ color:#f85149; }}
+    .feat-check {{ color:#3dd68c !important; }}
+    .feat-x {{ color:#f85149 !important; }}
     .auth-form {{ max-width:420px; margin:0 auto; padding:32px;
         background:{_card}; border:1px solid {_bdr}; border-radius:16px; }}
     .auth-title {{ color:{_head}; font-size:1.6rem; font-weight:800; margin-bottom:4px; }}
